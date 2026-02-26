@@ -111,7 +111,7 @@
                     <span>₱<span x-text="cartTotal"></span></span>
                 </div>
                 <button @click="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-sm shadow-lg hover:bg-blue-700 active:scale-95 transition-all">
-                    CONFIRM VIA FACEBOOK
+                    ORDER VIA FACEBOOK
                 </button>
             </div>
         </div>
@@ -149,7 +149,7 @@
                         image: "https://tcgplayer-cdn.tcgplayer.com/product/600518_in_1000x1000.jpg",
                         selectedQty: 1,
                         justAdded: false,
-                        soldOut: true // Example Sold Out
+                        soldOut: false // Example Sold Out
                     },
                     {
                         id: 3,
@@ -211,7 +211,7 @@
 
                     try {
                         await navigator.clipboard.writeText(orderSummary);
-                        alert("Order details copied! Opening Facebook...");
+                        alert("Order details copied! Opening Facebook. Send us a message just paste your order");
                         window.open("https://www.facebook.com/share/1AaiN79gTS/?mibextid=wwXIfr", "_blank");
                     } catch (err) {
                         window.open("https://www.facebook.com/share/1AaiN79gTS/?mibextid=wwXIfr", "_blank");

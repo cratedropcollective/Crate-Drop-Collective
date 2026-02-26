@@ -86,7 +86,7 @@
             <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4" x-show="cart.length > 0">
                 <p class="text-xs text-blue-800 leading-relaxed font-medium">
                     <i class="fas fa-info-circle mr-1"></i> 
-                    <strong>How to order:</strong> Click the button below to copy your order and open Facebook. Then just <strong>Paste</strong> the message! You can also screenshot this page to show your items.
+                    <strong>Instructions:</strong> Your order will be copied. When Messenger opens, just <strong>Paste</strong> the message!
                 </p>
             </div>
 
@@ -103,7 +103,7 @@
                                     <span class="text-[10px] font-bold w-4 text-center" x-text="item.quantity"></span>
                                     <button @click="updateQty(index, 1)" class="px-3 text-gray-600 text-xs font-bold">+</button>
                                 </div>
-                                <span class="font-bold text-xs">₱<span x-text="(item.price * item.quantity).toLocaleString()"></span></span>
+                                <span class="font-bold text-xs text-slate-900">₱<span x-text="(item.price * item.quantity).toLocaleString()"></span></span>
                             </div>
                         </div>
                     </div>
@@ -118,9 +118,15 @@
                     <span>Total:</span>
                     <span>₱<span x-text="cartTotal"></span></span>
                 </div>
-                <button @click="checkout()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-sm shadow-lg hover:bg-blue-700 active:scale-95 transition-all">
-                    ORDER VIA FACEBOOK
-                </button>
+                
+                <div class="grid grid-cols-4 gap-2">
+                    <button @click="clearCart()" class="col-span-1 bg-gray-100 text-gray-400 hover:text-red-500 rounded-xl transition-colors">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                    <button @click="checkout()" class="col-span-3 bg-blue-600 text-white py-4 rounded-xl font-black text-sm shadow-lg hover:bg-blue-700 active:scale-95 transition-all">
+                        ORDER VIA MESSENGER
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -202,6 +208,12 @@
                     }
                 },
 
+                clearCart() {
+                    if(confirm("Clear all items from your crate?")) {
+                        this.cart = [];
+                    }
+                },
+
                 get cartTotal() {
                     return this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString();
                 },
@@ -209,17 +221,19 @@
                 async checkout() {
                     let orderSummary = "🛒 ORDER FROM CRATE DROP COLLECTIVE\n\n";
                     this.cart.forEach(item => {
-                        // Added unit price here per your request
                         orderSummary += `• ${item.quantity}x ${item.name} (₱${item.price.toLocaleString()} each) - ₱${(item.price * item.quantity).toLocaleString()}\n`;
                     });
                     orderSummary += `\nTOTAL: ₱${this.cartTotal}`;
 
                     try {
                         await navigator.clipboard.writeText(orderSummary);
-                        alert("Order details copied! Opening Facebook. Send us a message and just paste your order.");
-                        window.open("https://www.facebook.com/share/1AaiN79gTS/?mibextid=wwXIfr", "_blank");
+                        alert("Order details copied! Opening Messenger... Just paste your order in the chat.");
+                        
+                        // DIRECT MESSENGER LINK (m.me)
+                        // REPLACE "CrateDropCollective" with your actual Page Username or Page ID
+                        window.open("https://m.me/543132715555620", "_blank");
                     } catch (err) {
-                        window.open("https://www.facebook.com/share/1AaiN79gTS/?mibextid=wwXIfr", "_blank");
+                        window.open("https://m.me/543132715555620", "_blank");
                     }
                 }
             }

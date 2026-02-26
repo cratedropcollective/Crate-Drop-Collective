@@ -7,9 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        [x-cloak] { display: none !important; }
-    </style>
+    <style>[x-cloak] { display: none !important; }</style>
 </head>
 <body class="bg-gray-50 font-sans text-slate-900" x-data="shop()" x-cloak>
 
@@ -21,7 +19,7 @@
             </div>
             <button @click="cartOpen = true" class="bg-blue-600 hover:bg-blue-500 px-5 py-2 rounded-full flex items-center transition-all">
                 <i class="fas fa-shopping-cart mr-2 text-sm"></i>
-                <span class="font-bold text-sm">₱<span x-text="total"></span></span>
+                <span class="font-bold text-sm">Cart (<span x-text="cart.length"></span>) — ₱<span x-text="total"></span></span>
             </button>
         </div>
     </nav>
@@ -39,10 +37,13 @@
                         <div class="flex justify-between items-end">
                             <div>
                                 <p class="text-[10px] text-gray-500 font-bold" x-text="product.condition"></p>
-                                <p class="text-lg font-black">₱<span x-text="product.price"></span></p>
+                                <p class="text-lg font-black">₱<span x-text="product.price.toLocaleString()"></span></p>
                             </div>
-                            <button @click="addToCart(product)" class="bg-slate-900 text-white w-10 h-10 rounded-xl hover:bg-blue-600 flex items-center justify-center transition-colors">
-                                <i class="fas fa-plus"></i>
+                            <button @click="addToCart(product)" 
+                                    :class="product.justAdded ? 'bg-green-500' : 'bg-slate-900 hover:bg-blue-600'"
+                                    class="text-white px-3 py-2 rounded-xl transition-colors text-xs font-bold">
+                                <span x-show="!product.justAdded"><i class="fas fa-plus"></i> Add</span>
+                                <span x-show="product.justAdded"><i class="fas fa-check"></i> Added!</span>
                             </button>
                         </div>
                     </div>
@@ -55,7 +56,7 @@
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="cartOpen = false"></div>
         <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white p-8 overflow-y-auto">
             <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-black">YOUR BASKET</h2>
+                <h2 class="text-2xl font-black text-slate-900">YOUR BASKET</h2>
                 <button @click="cartOpen = false" class="text-3xl">&times;</button>
             </div>
 
@@ -65,13 +66,13 @@
                         <div class="flex items-center">
                             <img :src="item.image" class="w-12 h-12 object-contain mr-4 bg-gray-50 p-1 rounded">
                             <div>
-                                <p class="font-bold text-sm leading-tight" x-text="item.name"></p>
-                                <p class="text-[10px] font-bold text-blue-600" x-text="item.condition"></p>
+                                <p class="font-bold text-sm leading-tight text-slate-800" x-text="item.name"></p>
+                                <p class="text-[10px] font-bold text-blue-600 uppercase" x-text="item.condition"></p>
                             </div>
                         </div>
                         <div class="flex items-center">
-                            <span class="font-bold text-sm mr-4">₱<span x-text="item.price"></span></span>
-                            <button @click="removeFromCart(index)" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>
+                            <span class="font-bold text-sm mr-4 text-slate-900">₱<span x-text="item.price.toLocaleString()"></span></span>
+                            <button @click="removeFromCart(index)" class="text-gray-300 hover:text-red-500 transition"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     </div>
                 </template>
@@ -87,6 +88,11 @@
                 </button>
                 <p class="text-center text-[10px] text-gray-400 mt-4 font-bold uppercase tracking-widest">Order list will be copied to clipboard</p>
             </div>
+            
+            <div x-show="cart.length === 0" class="text-center py-20 text-gray-400">
+                <i class="fas fa-shopping-bag text-4xl mb-4"></i>
+                <p>Basket is empty.</p>
+            </div>
         </div>
     </div>
 
@@ -97,7 +103,17 @@
                 cart: [],
                 
                 // ==========================================
-                //  📦 PRODUCT LIST (ADD OR REMOVE HERE)
+                // 📝 TEMPLATE: COPY & PASTE ONE BLOCK BELOW TO ADD A PRODUCT
+                /* {
+                    id: 4,
+                    name: "Card Name Here",
+                    set: "Set Name",
+                    price: 1000,
+                    condition: "NM",
+                    image: "https://link-to-image.png",
+                    justAdded: false
+                },
+                */
                 // ==========================================
                 products: [
                     {
@@ -106,7 +122,8 @@
                         set: "Supreme Victors",
                         price: 6500,
                         condition: "Near Mint",
-                        image: "https://images.pokemontcg.io/pl3/143_hires.png"
+                        image: "https://images.pokemontcg.io/pl3/143_hires.png",
+                        justAdded: false
                     },
                     {
                         id: 2,
@@ -114,7 +131,8 @@
                         set: "Fusion Strike",
                         price: 14000,
                         condition: "Mint",
-                        image: "https://images.pokemontcg.io/swsh8/271_hires.png"
+                        image: "https://images.pokemontcg.io/swsh8/271_hires.png",
+                        justAdded: false
                     },
                     {
                         id: 3,
@@ -122,15 +140,16 @@
                         set: "Celebrations",
                         price: 2500,
                         condition: "Near Mint",
-                        image: "https://images.pokemontcg.io/cel25/17_hires.png"
-                    },
-                    // To add more, just copy the block above and change the info.
+                        image: "https://images.pokemontcg.io/cel25/17_hires.png",
+                        justAdded: false
+                    }
                 ],
                 // ==========================================
 
                 addToCart(product) {
                     this.cart.push(product);
-                    this.cartOpen = true;
+                    product.justAdded = true;
+                    setTimeout(() => { product.justAdded = false; }, 2000);
                 },
                 removeFromCart(index) {
                     this.cart.splice(index, 1);
@@ -141,13 +160,13 @@
                 async checkout() {
                     let orderSummary = "🛒 ORDER FROM CRATE DROP COLLECTIVE\n\n";
                     this.cart.forEach(item => {
-                        orderSummary += `• ${item.name} (${item.condition}) - ₱${item.price}\n`;
+                        orderSummary += `• ${item.name} (${item.condition}) - ₱${item.price.toLocaleString()}\n`;
                     });
                     orderSummary += `\nTOTAL: ₱${this.total}`;
 
                     try {
                         await navigator.clipboard.writeText(orderSummary);
-                        alert("Order details copied! Opening Facebook Messenger...");
+                        alert("Order list copied! Now opening Facebook. Just PASTE the message in the chat.");
                         window.open("https://www.facebook.com/share/1AaiN79gTS/?mibextid=wwXIfr", "_blank");
                     } catch (err) {
                         window.open("https://www.facebook.com/share/1AaiN79gTS/?mibextid=wwXIfr", "_blank");

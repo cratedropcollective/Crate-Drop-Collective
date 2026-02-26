@@ -30,11 +30,20 @@
 
     <div class="bg-white border-b border-gray-200 sticky top-[68px] z-40">
         <div class="pt-4 px-4">
-            <div class="container mx-auto">
-                <div class="relative max-w-md mx-auto">
+            <div class="container mx-auto flex flex-col md:flex-row gap-3">
+                <div class="relative flex-1">
                     <input type="text" x-model="searchQuery" placeholder="Search products..." 
-                           class="w-full pl-10 pr-4 py-2 bg-gray-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                           class="w-full pl-10 pr-4 py-2 bg-gray-100 border-none rounded-xl text-base md:text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                     <i class="fas fa-search absolute left-4 top-3 text-gray-400 text-sm"></i>
+                </div>
+                <div class="relative min-w-[140px]">
+                    <select x-model="sortOrder" 
+                            class="w-full h-full pl-4 pr-10 py-2 bg-gray-100 border-none rounded-xl text-xs font-bold uppercase appearance-none focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                        <option value="newest">Latest</option>
+                        <option value="low">Price: Low to High</option>
+                        <option value="high">Price: High to Low</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-4 top-3 text-gray-400 text-[10px] pointer-events-none"></i>
                 </div>
             </div>
         </div>
@@ -59,7 +68,7 @@
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all flex flex-col"
                      :class="product.soldOut ? 'opacity-70' : ''">
                     
-                    <div class="relative aspect-square bg-white flex items-center justify-center p-4 overflow-hidden"
+                    <div class="relative aspect-square bg-[#fdfdfd] flex items-center justify-center p-4 overflow-hidden"
                          :class="product.soldOut ? 'grayscale' : ''">
                         <img :src="product.image" :alt="product.name" 
                              class="max-h-full max-w-full w-auto h-auto object-contain transition-transform duration-500 hover:scale-105">
@@ -107,14 +116,6 @@
                 <h2 class="text-xl font-black text-slate-900 uppercase">Your Crate</h2>
                 <button @click="cartOpen = false" class="text-3xl">&times;</button>
             </div>
-
-            <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4" x-show="cart.length > 0">
-                <p class="text-xs text-blue-800 leading-relaxed font-medium">
-                    <i class="fas fa-info-circle mr-1"></i> 
-                    <strong>Instructions:</strong> Your order will be copied. When Messenger opens, just <strong>Paste</strong> the message!
-                </p>
-            </div>
-
             <div class="flex-1 space-y-6">
                 <template x-for="(item, index) in cart" :key="item.id">
                     <div class="flex items-start border-b border-gray-100 pb-4">
@@ -137,7 +138,6 @@
                     <p class="text-sm font-bold uppercase tracking-widest">Crate Empty</p>
                 </div>
             </div>
-
             <div class="mt-6 pt-6 border-t" x-show="cart.length > 0">
                 <div class="flex justify-between text-lg font-black mb-4">
                     <span>Total:</span>
@@ -160,17 +160,9 @@
             return {
                 cartOpen: false,
                 searchQuery: '',
+                sortOrder: 'newest',
                 currentCategory: 'All Products',
-                categories: [
-                    'All Products', 
-                    'Pokemon TCG', 
-                    'One Piece TCG', 
-                    'Gundam TCG', 
-                    'Lorcana TCG', 
-                    'Weiss Schwarz TCG', 
-                    'Dragonball TCG',
-                    'Product Accessory'
-                ],
+                categories: ['All Products', 'Pokemon TCG', 'One Piece TCG', 'Gundam TCG', 'Lorcana TCG', 'Weiss Schwarz TCG', 'Dragonball TCG', 'Product Accessory'],
                 cart: [],
                 
                 products: [
@@ -212,9 +204,9 @@
                     },
                     {
                         id: 4,
-                        name: "Prismatic Evolutions Booster Bundle Display Case (with free Acrylic Case)",
+                        name: "Prismatic Evolutions Booster Bundle Display Case (free Acrylic Case)",
                         category: "Pokemon TCG",
-                        type: "Booster Bundle",
+                        type: "Sealed Booster Bundle Display Case",
                         set: "Prismatic Evolutions",
                         price: 57000,
                         image: "https://tcgplayer-cdn.tcgplayer.com/product/610317_in_1000x1000.jpg",
@@ -230,12 +222,22 @@
                 },
 
                 get filteredProducts() {
-                    return this.products.filter(p => {
+                    let items = this.products.filter(p => {
                         const matchesSearch = p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
                                             p.set.toLowerCase().includes(this.searchQuery.toLowerCase());
                         const matchesCategory = this.currentCategory === 'All Products' || p.category === this.currentCategory;
                         return matchesSearch && matchesCategory;
                     });
+
+                    // Sorting Logic
+                    if (this.sortOrder === 'low') {
+                        return items.sort((a, b) => a.price - b.price);
+                    } else if (this.sortOrder === 'high') {
+                        return items.sort((a, b) => b.price - a.price);
+                    } else {
+                        // "Newest" - sorts by ID descending as a proxy for date added
+                        return items.sort((a, b) => b.id - a.id);
+                    }
                 },
 
                 addToCart(product) {

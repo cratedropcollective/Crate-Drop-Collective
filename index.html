@@ -3,33 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crate Drop Collective | Sealed Products</title>
+    <title>Crate Drop Collective | Shop</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.10.2/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         [x-cloak] { display: none !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-gray-50 font-sans text-slate-900" x-data="shop()" x-cloak>
+<body class="bg-gray-50 font-sans" x-data="shop()" x-cloak>
 
-    <nav class="bg-black text-white p-4 sticky top-0 z-50 shadow-2xl">
+    <nav class="bg-black text-white p-4 sticky top-0 z-50 shadow-xl">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex flex-col">
-                <span class="text-lg md:text-xl font-black tracking-tighter leading-none">CRATE DROP</span>
-                <span class="text-[10px] font-bold text-blue-500 tracking-[0.2em]">COLLECTIVE</span>
+                <span class="text-xl font-black tracking-tighter italic">CRATE DROP</span>
+                <span class="text-[10px] font-bold text-blue-500 tracking-[0.2em] uppercase">Collective</span>
             </div>
-            <button @click="cartOpen = true" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-full flex items-center transition-all relative">
+            <button @click="cartOpen = true" class="bg-blue-600 px-4 py-2 rounded-full flex items-center relative">
                 <i class="fas fa-shopping-cart mr-2 text-xs"></i>
-                <span class="font-bold text-xs text-white">₱<span x-text="cartTotal"></span></span>
-                <span x-show="cart.length > 0" class="absolute -top-1 -right-1 bg-red-500 text-[8px] w-4 h-4 flex items-center justify-center rounded-full border-2 border-black" x-text="cart.reduce((s, i) => s + i.quantity, 0)"></span>
+                <span class="font-bold text-xs">₱<span x-text="cartTotal"></span></span>
+                <span x-show="cart.length > 0" class="absolute -top-1 -right-1 bg-red-500 text-[10px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-black" x-text="cart.reduce((s, i) => s + i.quantity, 0)"></span>
             </button>
         </div>
     </nav>
 
-    <div class="bg-white border-b border-gray-200 sticky top-[68px] z-40">
-        <div class="pt-4 px-4">
-            <div class="container mx-auto flex flex-col md:flex-row gap-3">
-                <div class="relative flex-
+    <div class="bg-white border-b sticky top-[68px] z-40">
+        <div class="p-4 container mx-auto flex flex-col md:flex-row gap-3">
+            <div class="relative flex-1">
+                <input type="text" x-model="searchQuery" placeholder="Search by name or set..." 
+                       class="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                <i class="fas fa-search absolute left-4 top-3 text-gray-400"></i>
+            </div>
+            <select x-model="sortOrder" class="bg-gray-100 px-4 py-2 rounded-xl font-bold text-xs uppercase outline-none">
+                <option value="newest">Latest Arrivals</option>
+                <option value="low">Price: Low to High</option>
+                <option value="high">Price: High to Low</option>
+            </select>
+        </div>
+
+        <div class="container mx-auto flex overflow-x-auto no-scrollbar px-4 pb-4 space-x-2">
+            <template x-for="cat in categories" :key="cat">
+                <button @click="currentCategory = cat" 
+                        :class="currentCategory === cat ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'"
+                        class="px-4 py-2 rounded-full text-[10px] font-bold uppercase transition-all whitespace-nowrap">
+                    <span x-text="cat"></span>
+                    <span class="ml-1 opacity-50" x-text="'(' + getCategoryCount(cat) + ')'"></span>
+                </button>
+            </template>
+        </div>
+    </div>
+
+    <main class="container mx-auto py-8 px-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+            <template x-for="product in filteredProducts" :key="product.id">
+                <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+                    
+                    <div class="relative aspect-square bg-white flex items-center justify-center p-4">
+                        <img :src="product.image" class="max-h-full object-contain" :class="product.soldOut ? 'grayscale opacity-50' : ''">
+                        
+                        <template x-if="product.originalPrice && product.originalPrice > product.price && !product.soldOut">
+                            <span class="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded">SALE</span>
+                        </template>
+
+                        <template x-if="product.soldOut">
+                            <span class="absolute inset-0 bg-white/60 flex items-center justify-center font-black text-gray-800 uppercase text-sm tracking-widest">Sold Out</span>
+                        </template>
+                    </div>
+
+                    <div class="p-4 flex-1 flex flex-col">
+                        <span class="text-[9px] font-black text-blue-600 uppercase" x-text="product.set"></span>
+                        <h2 class="font-bold text-sm md:text-base leading-tight mb-2 h-10 overflow-hidden" x-text="product.name"></h2>
+                        
+                        <div class="flex items-baseline gap-2 mb-4">
+                            <span class="text-lg font-black italic">₱<span x-text="product.price.toLocaleString()"></span></span>
+                            <template x-if="product.originalPrice && product.originalPrice > product.price">
+                                <span class="text-xs text-gray-400 line-through">₱<span x-text="product.originalPrice.toLocaleString()"></span></span>
+                            </template>
+                        </div>
+
+                        <div x-show="!product.soldOut" class="mt-auto space-y-2">
+                            <div class="flex items-center justify-between bg-gray-50 rounded-lg p-1 border">
+                                <button @click="if(product.selectedQty > 1) product.selectedQty--" class="w-8 h-8 flex items-center justify-center font-bold">-</button>
+                                <span class="text-xs font-bold" x-text="product.selectedQty"></span>
+                                <button @click="product.selectedQty++" class="w-8 h-8 flex items-center justify-center font-bold">+</button>
+                            </div>
+                            <button @click="addToCart(product)" 
+                                    :class="product.justAdded ? 'bg-green-600' : 'bg-black'"
+                                    class="w-full py-3 rounded-xl text-white text-[10px] font-black uppercase transition-all">
+                                <span x-show="!product.justAdded">Add to Crate</span>
+                                <span x-show="product.justAdded"><i class="fas fa-check mr-2"></i> Added!</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </main>
+
+    <div x-show="cartOpen" class="fixed inset-0 z-[60]" style="display: none;">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="cartOpen = false"></div>
+        <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-black italic uppercase">Your Crate</h2>
+                <button @click="cartOpen = false" class="text-2xl"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto space-y-6 pr-2">
+                <template x-for="(item, index) in cart" :key="item.id">
+                    <div class="flex gap-4 border-b border-gray-100 pb-4">
+                        <img :src="item.image" class="w-16 h-16 object-contain bg-gray-50 p-1 rounded-lg">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-xs mb-1" x-text="item.name"></h3>
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center bg-gray-100 rounded-lg overflow-hidden">
+                                    <button @click="updateQty(index, -1)" class="w-8 h-8 flex items-center justify-center font-bold">-</button>
+                                    <span class="w-8 text-center text-xs font-bold" x-text="item.quantity"></span>
+                                    <button @click="updateQty(index, 1)" class="w-8 h-8 flex items-center justify-center font-bold">+</button>
+                                </div>
+                                <span class="font-black text-sm">₱<span x-text="(item.price * item.quantity).toLocaleString()"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <div x-show="cart.length === 0" class="text-center py-20 text-gray-400 font-bold uppercase tracking-widest italic">Crate is Empty</div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t" x-show="cart.length > 0">
+                <div class="flex justify-between mb-2">
+                    <span class="text-gray-500 font-bold uppercase text-xs tracking-widest">Total</span>
+                    <span class="text-2xl font-black italic">₱<span x-text="cartTotal"></span></span>
+                </div>
+                <button @click="checkout()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-2xl font-black uppercase shadow-lg shadow-blue-200 transition-all">
+                    Checkout to Messenger
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function shop() {
+            return {
+                cartOpen: false,
+                searchQuery: '',
+                sortOrder: 'newest',
+                currentCategory: 'All Products',
+                categories: ['All Products', 'On Sale', 'Pokemon TCG', 'Gundam TCG', 'One Piece TCG', 'Magic The Gathering'],
+                cart: [],
+                
+                // DATA
+                products: [
+                    { id: 1, name: "Phantasmal Flames Booster Box", category: "Pokemon TCG", set: "Phantasmal Flames", price: 18000, originalPrice: 20000, image: "https://tcgplayer-cdn.tcgplayer.com/product/654137_in_1000x1000.jpg", selectedQty: 1, justAdded: false, soldOut: false },
+                    { id: 2, name: "Phantasmal Flames ETB", category: "Pokemon TCG", set: "Phantasmal Flames", price: 6000, image: "
